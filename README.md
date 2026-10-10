@@ -38,8 +38,8 @@ be retrieved and leaked on a call. Only the policy is.
 | Booking | Cal.com | live - reads real openings, books them |
 | Designer handoff | Telegram | live - bot sends the handoff note |
 | Dashboard hosting | Vercel | live and public |
+| CRM | HubSpot | built, dormant - awaiting a token |
 | Classification and routing | Gemini Flash | not wired |
-| CRM | HubSpot | not wired |
 
 Live means tested end to end, not configured. The agent has read genuine
 openings off Cal.com, held them, and written its own handoff notes to Telegram,
@@ -58,6 +58,13 @@ Vaani's tester and against the 40 September transcripts, not against real audio.
 3. `aangan_find_times` - real Cal.com openings, already phrased for speech.
 4. `aangan_hold_slot` - holds the slot the caller picked.
 5. `notify_designer` - handoff note to Telegram **and** the lead-log row.
+
+Because the platform runs **one tool per turn**, every downstream system is
+fanned out server-side from that single close-out call rather than added as
+another tool. The CRM leg is written and deployed but dormant: it stays silent
+until a `HUBSPOT_TOKEN` is dropped into `agent_secrets`, and only qualified
+leads are ever pushed - a decline belongs in the review queue, and an escalation
+is an existing client already in the CRM.
 
 The agent never holds a privileged credential. It sends a shared secret; the
 service-role key, the Telegram bot token and the Cal.com API key all stay inside
