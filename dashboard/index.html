@@ -4,220 +4,436 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Aangan Front Desk</title>
+<meta name="description" content="What the phone agent costs to run, and what it is generating.">
 <style>
   :root {
-    color-scheme: light;
-    --surface-0: #f4f4f1;
-    --surface-1: #fcfcfb;
-    --border:    #e2e1dc;
-    --text-primary:   #0b0b0b;
-    --text-secondary: #52514e;
-    --text-muted:     #86857e;
-    --series-1: #2a78d6;
-    --series-2: #eb6834;
-    --series-3: #1baf7a;
-    --series-4: #eda100;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:where(:not([data-theme="light"])) {
-      color-scheme: dark;
-      --surface-0: #121211;
-      --surface-1: #1a1a19;
-      --border:    #35342f;
-      --text-primary:   #f0efec;
-      --text-secondary: #c3c2b7;
-      --text-muted:     #8e8d84;
-      --series-1: #3987e5;
-      --series-2: #d95926;
-      --series-3: #199e70;
-      --series-4: #c98500;
-    }
-  }
-  :root[data-theme="dark"] {
     color-scheme: dark;
-    --surface-0: #121211;
-    --surface-1: #1a1a19;
-    --border:    #35342f;
-    --text-primary:   #f0efec;
-    --text-secondary: #c3c2b7;
-    --text-muted:     #8e8d84;
-    --series-1: #3987e5;
-    --series-2: #d95926;
-    --series-3: #199e70;
-    --series-4: #c98500;
+    --void:    #05070a;
+    --panel:   #0a0e14;
+    --panel-2: #0d1219;
+    --line:    #16202b;
+    --line-hot:#1e3042;
+    --fg:      #e8eef5;
+    --fg-dim:  #8ba0b5;
+    --fg-mute: #4e6376;
+    --cyan:    #22d3ee;
+    --lime:    #4ade80;
+    --amber:   #fbbf24;
+    --rose:    #fb7185;
+    --violet:  #a78bfa;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: ui-sans-serif, -apple-system, "Segoe UI", Inter, Roboto, sans-serif;
   }
 
   * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
   body {
     margin: 0;
-    background: var(--surface-0);
-    color: var(--text-primary);
-    font: 15px/1.5 ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--void);
+    color: var(--fg);
+    font: 15px/1.55 var(--sans);
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
   }
-  .wrap { max-width: 1040px; margin: 0 auto; padding: 40px 16px 72px; }
+  /* grid floor + corner glows */
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image:
+      linear-gradient(color-mix(in oklab, var(--cyan) 6%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in oklab, var(--cyan) 6%, transparent) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(ellipse 120% 70% at 50% 0%, #000 0%, transparent 78%);
+    -webkit-mask-image: radial-gradient(ellipse 120% 70% at 50% 0%, #000 0%, transparent 78%);
+  }
+  body::after {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(760px 420px at 8% -6%, color-mix(in oklab, var(--cyan) 13%, transparent), transparent 68%),
+      radial-gradient(640px 380px at 96% 2%, color-mix(in oklab, var(--violet) 11%, transparent), transparent 70%);
+  }
+  .wrap { position: relative; z-index: 1; max-width: 1140px; margin: 0 auto; padding: 26px 16px 90px; }
 
-  header { margin-bottom: 32px; }
-  h1 { font-size: 22px; font-weight: 650; margin: 0 0 4px; letter-spacing: -0.01em; }
-  .sub { color: var(--text-secondary); font-size: 13px; margin: 0; }
+  /* ---------- top ---------- */
+  .top {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap; margin-bottom: 22px;
+  }
+  .brand h1 {
+    font: 600 20px/1.2 var(--sans); margin: 0 0 4px; letter-spacing: -0.02em;
+  }
+  .brand h1 span { color: var(--cyan); }
+  .brand p { margin: 0; font: 400 12.5px/1.4 var(--mono); color: var(--fg-mute); }
+  .status {
+    display: inline-flex; align-items: center; gap: 9px;
+    font: 500 11.5px/1 var(--mono); color: var(--lime);
+    background: color-mix(in oklab, var(--lime) 8%, var(--panel));
+    border: 1px solid color-mix(in oklab, var(--lime) 30%, transparent);
+    border-radius: 6px; padding: 8px 12px; white-space: nowrap;
+    box-shadow: 0 0 22px -8px var(--lime);
+  }
+  .status.bad { color: var(--rose); background: color-mix(in oklab, var(--rose) 8%, var(--panel));
+                border-color: color-mix(in oklab, var(--rose) 32%, transparent); box-shadow: none; }
+  .led { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
+  .led::after {
+    content: ""; position: absolute; width: 6px; height: 6px; border-radius: 50%;
+    border: 1px solid currentColor; animation: ping 2.2s ease-out infinite;
+  }
+  @keyframes ping { 0%{transform:scale(1);opacity:.7} 100%{transform:scale(3);opacity:0} }
 
-  .hero {
-    background: var(--surface-1);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 28px;
-    margin-bottom: 20px;
-  }
-  .hero-label { font-size: 13px; color: var(--text-secondary); margin: 0 0 10px; }
-  .hero-num {
-    font-size: 52px; font-weight: 650; letter-spacing: -0.02em;
-    line-height: 1; margin: 0 0 12px;
-    font-variant-numeric: tabular-nums;
-  }
-  .hero-note { font-size: 13px; color: var(--text-secondary); margin: 0; max-width: 62ch; }
-
-  .tiles {
-    display: grid; gap: 12px; margin-bottom: 20px;
-    grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
-  }
-  .tile {
-    background: var(--surface-1);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px 18px;
-  }
-  .tile-label { font-size: 12px; color: var(--text-secondary); margin: 0 0 6px; }
-  .tile-num {
-    font-size: 26px; font-weight: 600; letter-spacing: -0.01em;
-    margin: 0; font-variant-numeric: tabular-nums;
-  }
-  .tile-foot { font-size: 11.5px; color: var(--text-muted); margin: 4px 0 0; }
-
+  /* ---------- panels ---------- */
   .panel {
-    background: var(--surface-1);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 24px 28px 28px;
-    margin-bottom: 20px;
+    position: relative;
+    background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+    border: 1px solid var(--line);
+    border-radius: 4px; padding: 22px 24px; margin-bottom: 14px;
   }
-  .panel h2 { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
-  .panel .lede { font-size: 13px; color: var(--text-secondary); margin: 0 0 20px; }
-
-  .bar { display: flex; width: 100%; height: 34px; gap: 2px; margin-bottom: 14px; }
-  .seg { border-radius: 3px; min-width: 3px; }
-  .seg:first-child { border-radius: 6px 3px 3px 6px; }
-  .seg:last-child  { border-radius: 3px 6px 6px 3px; }
-
-  .legend { display: flex; flex-wrap: wrap; gap: 8px 20px; }
-  .lg { display: flex; align-items: center; gap: 7px; font-size: 13px; }
-  .sw { width: 11px; height: 11px; border-radius: 3px; flex: none; }
-  .lg b { font-weight: 600; font-variant-numeric: tabular-nums; }
-  .lg span { color: var(--text-secondary); }
-
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  caption { text-align: left; font-size: 12px; color: var(--text-muted); padding-bottom: 8px; }
-  th, td { text-align: left; padding: 7px 10px 7px 0; border-bottom: 1px solid var(--border); }
-  th { font-weight: 600; color: var(--text-secondary); font-size: 12px; }
-  td.n { text-align: right; font-variant-numeric: tabular-nums; padding-right: 0; }
-
-  .foot { font-size: 12.5px; color: var(--text-muted); margin-top: 28px; line-height: 1.6; }
-  .foot strong { color: var(--text-secondary); font-weight: 600; }
-  .err {
-    background: var(--surface-1); border: 1px solid var(--border);
-    border-left: 3px solid var(--series-2);
-    border-radius: 8px; padding: 16px 18px; font-size: 13px;
+  /* HUD corner ticks */
+  .panel::before, .panel::after {
+    content: ""; position: absolute; width: 11px; height: 11px; pointer-events: none;
+    border-color: color-mix(in oklab, var(--cyan) 46%, transparent);
   }
-  @media (max-width: 560px) {
-    .hero-num { font-size: 40px; }
-    .wrap { padding-top: 28px; }
+  .panel::before { top: -1px; left: -1px; border-top: 1px solid; border-left: 1px solid; }
+  .panel::after  { bottom: -1px; right: -1px; border-bottom: 1px solid; border-right: 1px solid; }
+
+  .ptitle {
+    font: 600 11px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase;
+    color: var(--cyan); margin: 0 0 7px; display: flex; align-items: center; gap: 9px;
   }
+  .ptitle::before { content: "▸"; opacity: .7; }
+  .ptitle::after {
+    content: ""; flex: 1; height: 1px;
+    background: linear-gradient(90deg, var(--line-hot), transparent);
+  }
+  .lede { font-size: 13px; color: var(--fg-dim); margin: 0 0 18px; max-width: 72ch; }
+
+  /* ---------- hero ---------- */
+  .hero {
+    display: grid; grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr);
+    gap: 30px; align-items: center; padding: 26px 26px 24px;
+  }
+  @media (max-width: 800px) { .hero { grid-template-columns: 1fr; gap: 22px } }
+  .kicker { font: 600 10.5px/1 var(--mono); letter-spacing: .15em; text-transform: uppercase;
+            color: var(--fg-mute); margin: 0 0 14px; }
+  .hero-num {
+    font: 650 clamp(46px, 8.5vw, 68px)/0.92 var(--sans);
+    letter-spacing: -0.035em; margin: 0 0 12px;
+    font-variant-numeric: tabular-nums;
+    color: var(--fg);
+    text-shadow: 0 0 44px color-mix(in oklab, var(--cyan) 40%, transparent);
+  }
+  .hero-note { font-size: 13.5px; color: var(--fg-dim); margin: 0; max-width: 44ch; }
+  .hero-note b { color: var(--fg); font-weight: 600; }
+  .hero-note .hot { color: var(--cyan); font-weight: 600; font-family: var(--mono); }
+
+  .scale-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 9px; }
+  .scale-k { font: 500 11px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--fg-mute); }
+  .scale-v { font: 600 12.5px/1 var(--mono); color: var(--fg-dim); font-variant-numeric: tabular-nums; }
+  /* ONE track, drawn to scale. The cost marker genuinely is ~0.004% of the width.
+     That sliver IS the finding — widening it to be "readable" would be the lie. */
+  .scale {
+    position: relative; height: 40px; border-radius: 3px; overflow: hidden;
+    background:
+      repeating-linear-gradient(90deg, transparent 0 7px, color-mix(in oklab, var(--lime) 7%, transparent) 7px 8px),
+      linear-gradient(90deg, color-mix(in oklab, var(--lime) 20%, transparent), color-mix(in oklab, var(--lime) 6%, transparent));
+    border: 1px solid color-mix(in oklab, var(--lime) 34%, transparent);
+    animation: sweep 1s cubic-bezier(.2,.85,.2,1) both;
+  }
+  @keyframes sweep { from { clip-path: inset(0 100% 0 0) } to { clip-path: inset(0 0 0 0) } }
+  /* a tight glow only — a wide one would visually inflate the sliver back into
+     a block, which is exactly the exaggeration the caption disclaims */
+  .sliver { position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+            background: var(--rose); box-shadow: 0 0 4px 0 var(--rose); }
+  .scale-lab-l { position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+                 font: 600 11.5px/1 var(--mono); color: var(--rose); white-space: nowrap; }
+  .scale-lab-r { position: absolute; right: 11px; top: 50%; transform: translateY(-50%);
+                 font: 600 12px/1 var(--mono); color: var(--lime); }
+  .scale-cap { font: 400 11.5px/1.5 var(--mono); color: var(--fg-mute); margin: 9px 0 0; }
+
+  /* ---------- funnel ---------- */
+  .funnel { display: grid; gap: 8px; }
+  .fn-row { display: grid; grid-template-columns: 140px 1fr; gap: 14px; align-items: center; }
+  @media (max-width: 580px) { .fn-row { grid-template-columns: 96px 1fr; gap: 10px } }
+  .fn-label { font: 500 11.5px/1.3 var(--mono); letter-spacing: .04em; color: var(--fg-dim); text-transform: uppercase; }
+  .fn-bar { position: relative; height: 36px; border-radius: 3px;
+            background: #080c11; border: 1px solid var(--line); overflow: hidden; }
+  .fn-fill {
+    position: absolute; inset: 0 auto 0 0; display: flex; align-items: center; padding: 0 12px;
+    border-radius: 2px; animation: sweep 1.05s cubic-bezier(.2,.85,.2,1) both;
+  }
+  .fn-fill::after {
+    content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: 2px;
+    background: #fff; opacity: .55;
+  }
+  .fn-n { font: 650 15px/1 var(--mono); font-variant-numeric: tabular-nums;
+          color: #04070a; position: relative; z-index: 1; }
+  .fn-drop { position: absolute; right: 11px; top: 50%; transform: translateY(-50%);
+             font: 500 11px/1 var(--mono); color: var(--rose); }
+  @media (prefers-reduced-motion: reduce) {
+    .scale, .fn-fill { animation: none }
+    .led::after { animation: none }
+  }
+
+  /* ---------- metric grid ---------- */
+  .grid { display: grid; gap: 12px; margin-bottom: 14px;
+          grid-template-columns: repeat(auto-fit, minmax(228px, 1fr)); }
+  .card {
+    position: relative; background: var(--panel); border: 1px solid var(--line);
+    border-radius: 4px; padding: 16px 17px 15px; overflow: hidden;
+    transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+  }
+  .card::before {
+    content: ""; position: absolute; left: 0; top: 0; width: 100%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-c, var(--cyan)), transparent);
+    opacity: .55;
+  }
+  .card:hover { border-color: var(--line-hot); transform: translateY(-1px);
+                box-shadow: 0 10px 30px -18px var(--accent-c, var(--cyan)); }
+  .card-k { font: 600 10px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase;
+            color: var(--fg-mute); margin: 0 0 12px; }
+  .card-n { font: 650 31px/1 var(--sans); letter-spacing: -0.03em; margin: 0 0 8px;
+            font-variant-numeric: tabular-nums; color: var(--accent-c, var(--fg)); }
+  .card-f { font-size: 12.5px; color: var(--fg-dim); margin: 0; }
+
+  /* ---------- mix ---------- */
+  .mix { display: grid; grid-template-columns: 160px 1fr; gap: 30px; align-items: center; }
+  @media (max-width: 640px) { .mix { grid-template-columns: 1fr; gap: 20px; justify-items: center } }
+  .legend { display: grid; gap: 10px; width: 100%; max-width: 420px; }
+  .lg { display: grid; grid-template-columns: 10px 1fr auto auto; gap: 11px; align-items: center; }
+  .sw { width: 10px; height: 10px; border-radius: 2px; box-shadow: 0 0 9px currentColor; }
+  .lg-k { font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--fg-dim); }
+  .lg-n { font: 650 13px/1 var(--mono); font-variant-numeric: tabular-nums; color: var(--fg); }
+  .lg-p { font: 500 11.5px/1 var(--mono); color: var(--fg-mute); min-width: 46px; text-align: right; }
+
+  /* ---------- pipeline ---------- */
+  .pipe { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+  .node {
+    position: relative; display: inline-flex; align-items: center; gap: 7px;
+    background: #080c11; border: 1px solid var(--line);
+    border-radius: 3px; padding: 9px 12px;
+    font: 500 11px/1 var(--mono); letter-spacing: .05em; color: var(--fg-mute);
+    text-transform: uppercase;
+  }
+  .node b { color: var(--cyan); font-weight: 600; }
+  .node.term { border-color: color-mix(in oklab, var(--lime) 34%, transparent); }
+  .node.term b { color: var(--lime); }
+  .arrow { color: var(--line-hot); font-size: 12px; }
+
+  /* ---------- table ---------- */
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  caption { text-align: left; font: 500 11px/1 var(--mono); letter-spacing: .1em;
+            text-transform: uppercase; color: var(--fg-mute); padding-bottom: 13px; }
+  th, td { padding: 9px 0; border-bottom: 1px solid var(--line); text-align: left; }
+  th { font: 600 10px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--fg-mute); }
+  td { color: var(--fg-dim); }
+  .n { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--fg); }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr:hover td { color: var(--fg); }
+
+  .foot { font: 400 12.5px/1.7 var(--sans); color: var(--fg-mute);
+          border-top: 1px solid var(--line); padding-top: 18px; margin-top: 24px; }
+  .foot b { color: var(--fg-dim); font-weight: 600; }
+  .err { background: var(--panel); border: 1px solid var(--rose); border-radius: 4px;
+         padding: 20px; font-size: 13.5px; color: var(--fg-dim); }
+  .skel { height: 190px; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <h1>Aangan Front Desk</h1>
-    <p class="sub">What the phone agent costs to run, and what it is generating.</p>
-  </header>
-  <div id="app"><p class="sub">Loading…</p></div>
+  <div class="top">
+    <div class="brand">
+      <h1>Aangan <span>Front Desk</span></h1>
+      <p>what the phone agent costs to run, and what it is generating</p>
+    </div>
+    <span class="status" id="status"><span class="led"></span><span>connecting</span></span>
+  </div>
+  <div id="app"><div class="skel"></div></div>
 </div>
 
 <script>
 const SUPABASE_URL = "https://lyqysxyvxziwfohkimgd.supabase.co";
 const SUPABASE_KEY = "sb_publishable_lYuDq4X-2ZlIqEqUOkr_2g_QOhonNAE";
 
-const inr = n => "₹" + Number(n).toLocaleString("en-IN", {maximumFractionDigits: 0});
+const inr  = n => "₹" + Number(n).toLocaleString("en-IN", {maximumFractionDigits: 0});
 const inr2 = n => "₹" + Number(n).toLocaleString("en-IN", {minimumFractionDigits: 2, maximumFractionDigits: 2});
-const pct = n => n == null ? "—" : Number(n).toFixed(1) + "%";
-const esc = s => String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const pct  = n => n == null ? "—" : Number(n).toFixed(1) + "%";
+const esc  = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
 async function view(name) {
   const r = await fetch(`${SUPABASE_URL}/rest/v1/${name}?select=*&order=month.desc&limit=1`, {
     headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
   });
   if (!r.ok) throw new Error(`${name}: ${r.status} ${r.statusText}`);
-  const rows = await r.json();
-  return rows[0] || {};
+  return (await r.json())[0] || {};
+}
+
+function fnRow(label, value, top, colour, prev) {
+  const w = top ? Math.max(5, (value / top) * 100) : 5;
+  const drop = (prev != null && prev > 0 && value < prev) ? `−${prev - value}` : "";
+  return `<div class="fn-row">
+    <div class="fn-label">${esc(label)}</div>
+    <div class="fn-bar">
+      <div class="fn-fill" style="width:${w}%;background:linear-gradient(90deg,${colour},color-mix(in oklab,${colour} 72%,#fff))">
+        <span class="fn-n">${value}</span>
+      </div>
+      ${drop ? `<span class="fn-drop">${drop}</span>` : ""}
+    </div></div>`;
+}
+
+function donut(mix, total) {
+  const R = 58, C = 2 * Math.PI * R;
+  let off = 0;
+  const arcs = mix.filter(m => m.v > 0).map(m => {
+    const len = (m.v / total) * C;
+    const s = `<circle cx="75" cy="75" r="${R}" fill="none" stroke="${m.c}" stroke-width="16"
+      stroke-dasharray="${len - 2} ${C - len + 2}" stroke-dashoffset="${-off}"
+      transform="rotate(-90 75 75)" stroke-linecap="butt"
+      style="filter:drop-shadow(0 0 7px ${m.c})"></circle>`;
+    off += len; return s;
+  }).join("");
+  return `<svg width="150" height="150" viewBox="0 0 150 150" role="img"
+      aria-label="${esc(mix.map(m => `${m.k} ${m.v}`).join(", "))}">
+    <circle cx="75" cy="75" r="${R}" fill="none" stroke="#0c1219" stroke-width="16"></circle>
+    ${arcs}
+    <text x="75" y="71" text-anchor="middle" fill="#e8eef5"
+      style="font:650 27px var(--sans);font-variant-numeric:tabular-nums">${total}</text>
+    <text x="75" y="89" text-anchor="middle" fill="#4e6376"
+      style="font:600 9px var(--mono);letter-spacing:.17em">CALLS</text>
+  </svg>`;
 }
 
 function render(ans, jud, conv, cost) {
-  const monthLabel = ans.month
+  const month = ans.month
     ? new Date(ans.month).toLocaleDateString("en-IN", {month: "long", year: "numeric", timeZone: "UTC"})
     : "—";
 
-  const AVG_PROJECT = 1100000;
+  const AVG = 1100000;
   const cpl = cost.cost_per_qualified_lead;
-  const ratio = cpl ? Math.round(AVG_PROJECT / cpl) : null;
+  const ratio = cpl ? Math.round(AVG / cpl) : null;
+
+  const calls = ans.calls_handled || 0;
+  const qualified = jud.qualified || 0;
+  const declined = jud.declined || 0;
+  const genuine = qualified + declined;
+  const booked = conv.booked || 0;
+  const attended = conv.attended || 0;
 
   const mix = [
-    {k: "Qualified", v: jud.qualified  || 0, c: "var(--series-1)"},
-    {k: "Declined",  v: jud.declined   || 0, c: "var(--series-2)"},
-    {k: "Escalated", v: jud.escalated  || 0, c: "var(--series-3)"},
-    {k: "Dropped",   v: ans.dropped    || 0, c: "var(--series-4)"}
+    {k: "Qualified", v: qualified,        c: "#22d3ee"},
+    {k: "Declined",  v: declined,         c: "#fb7185"},
+    {k: "Escalated", v: jud.escalated || 0, c: "#4ade80"},
+    {k: "Dropped",   v: ans.dropped   || 0, c: "#fbbf24"}
   ];
-  const mixTotal = mix.reduce((a, b) => a + b.v, 0) || 1;
+  const total = mix.reduce((a, b) => a + b.v, 0) || 1;
 
   document.getElementById("app").innerHTML = `
-    <div class="hero">
-      <p class="hero-label">Cost per qualified lead · ${esc(monthLabel)}</p>
-      <p class="hero-num">${cpl != null ? inr2(cpl) : "—"}</p>
-      <p class="hero-note">${ratio
-        ? `An average project is worth <strong>${inr(AVG_PROJECT)}</strong> — about <strong>${ratio.toLocaleString("en-IN")}×</strong> what it costs to find one. The build pays for itself on a single recovered project.`
-        : "No qualified leads yet this month."}</p>
-    </div>
-
-    <div class="tiles">
-      <div class="tile"><p class="tile-label">Calls handled</p><p class="tile-num">${ans.calls_handled ?? "—"}</p><p class="tile-foot">${pct(ans.pct_out_of_hours)} outside 10–7</p></div>
-      <div class="tile"><p class="tile-label">Qualification rate</p><p class="tile-num">${pct(jud.qualification_rate_pct)}</p><p class="tile-foot">of genuine enquiries</p></div>
-      <div class="tile"><p class="tile-label">Consultations booked</p><p class="tile-num">${conv.booked ?? "—"}</p><p class="tile-foot">${pct(conv.booking_rate_pct)} of qualified</p></div>
-      <div class="tile"><p class="tile-label">Showed up</p><p class="tile-num">${conv.attended ?? "—"}</p><p class="tile-foot">${pct(conv.show_up_rate_pct)} of booked</p></div>
-      <div class="tile"><p class="tile-label">Pipeline value</p><p class="tile-num">${conv.pipeline_value != null ? inr(conv.pipeline_value) : "—"}</p><p class="tile-foot">attended × ₹11L avg</p></div>
-      <div class="tile"><p class="tile-label">Total run cost</p><p class="tile-num">${cost.total_run_cost != null ? inr2(cost.total_run_cost) : "—"}</p><p class="tile-foot">${cost.call_minutes ?? 0} min × ₹5.98</p></div>
+    <div class="panel hero">
+      <div>
+        <p class="kicker">cost per qualified lead · ${esc(month)}</p>
+        <p class="hero-num">${cpl != null ? inr2(cpl) : "—"}</p>
+        <p class="hero-note">${ratio
+          ? `An average project is worth <b>${inr(AVG)}</b> — about
+             <span class="hot">${ratio.toLocaleString("en-IN")}×</span> what it costs to find one.
+             The build pays for itself on a single recovered project.`
+          : "No qualified leads yet this month."}</p>
+      </div>
+      <div>
+        <div class="scale-head">
+          <span class="scale-k">one project ⟷ one lead</span>
+          <span class="scale-v">drawn to scale</span>
+        </div>
+        <div class="scale">
+          <span class="sliver"></span>
+          <span class="scale-lab-l">${cpl != null ? inr2(cpl) : "—"} ↑</span>
+          <span class="scale-lab-r">${inr(AVG)}</span>
+        </div>
+        <p class="scale-cap">// the red sliver is the cost, at true width:
+          ${cpl ? (cpl / AVG * 100).toFixed(4) : "—"}% of one project.<br>
+          // widening it to be readable would be the lie.</p>
+      </div>
     </div>
 
     <div class="panel">
-      <h2>What happened to every call</h2>
+      <p class="ptitle">where the calls go</p>
+      <p class="lede">Every stage reads from the call log. The figure on the right of each bar is what did not carry forward.</p>
+      <div class="funnel">
+        ${fnRow("calls handled",     calls,     calls, "#22d3ee", null)}
+        ${fnRow("genuine enquiries", genuine,   calls, "#22d3ee", calls)}
+        ${fnRow("qualified",         qualified, calls, "#4ade80", genuine)}
+        ${fnRow("booked",            booked,    calls, "#4ade80", qualified)}
+        ${fnRow("showed up",         attended,  calls, "#fbbf24", booked)}
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card" style="--accent-c:#22d3ee">
+        <p class="card-k">answered</p><p class="card-n">${calls || "—"}</p>
+        <p class="card-f">${pct(ans.pct_out_of_hours)} outside 10–7 — calls a human desk would have missed</p>
+      </div>
+      <div class="card" style="--accent-c:#4ade80">
+        <p class="card-k">qualification rate</p><p class="card-n">${pct(jud.qualification_rate_pct)}</p>
+        <p class="card-f">of genuine enquiries · ${declined} correctly declined</p>
+      </div>
+      <div class="card" style="--accent-c:#4ade80">
+        <p class="card-k">booking rate</p><p class="card-n">${pct(conv.booking_rate_pct)}</p>
+        <p class="card-f">${booked} consultations from ${qualified} qualified</p>
+      </div>
+      <div class="card" style="--accent-c:#fbbf24">
+        <p class="card-k">show-up rate</p><p class="card-n">${pct(conv.show_up_rate_pct)}</p>
+        <p class="card-f">${attended} attended of ${booked} booked</p>
+      </div>
+      <div class="card" style="--accent-c:#a78bfa">
+        <p class="card-k">pipeline value</p>
+        <p class="card-n">${conv.pipeline_value != null ? inr(conv.pipeline_value) : "—"}</p>
+        <p class="card-f">attended × ₹11L average project</p>
+      </div>
+      <div class="card" style="--accent-c:#fb7185">
+        <p class="card-k">total run cost</p>
+        <p class="card-n">${cost.total_run_cost != null ? inr2(cost.total_run_cost) : "—"}</p>
+        <p class="card-f">${cost.call_minutes ?? 0} minutes × ₹5.98</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <p class="ptitle">what happened to every call</p>
       <p class="lede">A decline is a correct outcome, not a failure — these are categories, not grades.</p>
-      <div class="bar" role="img" aria-label="${mix.map(m => `${m.k} ${m.v}`).join(", ")}">
-        ${mix.filter(m => m.v > 0).map(m =>
-          `<div class="seg" style="background:${m.c};flex:${m.v}"></div>`).join("")}
-      </div>
-      <div class="legend">
-        ${mix.map(m => `<span class="lg"><span class="sw" style="background:${m.c}"></span><b>${m.v}</b> <span>${m.k}</span></span>`).join("")}
+      <div class="mix">
+        ${donut(mix, total)}
+        <div class="legend">
+          ${mix.map(m => `<div class="lg">
+            <span class="sw" style="background:${m.c};color:${m.c}"></span>
+            <span class="lg-k">${esc(m.k)}</span>
+            <span class="lg-n">${m.v}</span>
+            <span class="lg-p">${((m.v / total) * 100).toFixed(1)}%</span>
+          </div>`).join("")}
+        </div>
       </div>
     </div>
 
     <div class="panel">
-      <h2>The numbers behind the tiles</h2>
+      <p class="ptitle">how a call becomes a row on this page</p>
+      <p class="lede">The agent holds no privileged credential. It sends a shared secret; the service-role key, the Telegram bot token and the Cal.com API key never leave Supabase.</p>
+      <div class="pipe">
+        <span class="node term"><b>caller</b></span><span class="arrow">──▸</span>
+        <span class="node">vaani <b>agent</b></span><span class="arrow">──▸</span>
+        <span class="node">step0 <b>lookup</b></span><span class="arrow">──▸</span>
+        <span class="node">cal.com <b>booking</b></span><span class="arrow">──▸</span>
+        <span class="node">telegram <b>handoff</b></span><span class="arrow">──▸</span>
+        <span class="node">supabase <b>log</b></span><span class="arrow">──▸</span>
+        <span class="node term"><b>this page</b></span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <p class="ptitle">the numbers behind the cards</p>
       <p class="lede">Every figure above reads from the call log. Nothing is typed in by hand.</p>
       <table>
-        <caption>${esc(monthLabel)} · ${mixTotal} calls</caption>
-        <thead><tr><th>Measure</th><th class="n">Value</th></tr></thead>
+        <caption>${esc(month)} · ${total} calls</caption>
+        <thead><tr><th>measure</th><th class="n">value</th></tr></thead>
         <tbody>
-          <tr><td>Calls handled</td><td class="n">${ans.calls_handled ?? "—"}</td></tr>
+          <tr><td>Calls handled</td><td class="n">${calls || "—"}</td></tr>
           <tr><td>Outside studio hours</td><td class="n">${ans.out_of_hours ?? "—"} (${pct(ans.pct_out_of_hours)})</td></tr>
-          <tr><td>Qualified</td><td class="n">${jud.qualified ?? "—"}</td></tr>
-          <tr><td>Declined</td><td class="n">${jud.declined ?? "—"}</td></tr>
+          <tr><td>Qualified</td><td class="n">${qualified || "—"}</td></tr>
+          <tr><td>Declined</td><td class="n">${declined || "—"}</td></tr>
           <tr><td>Escalated to a human</td><td class="n">${jud.escalated ?? "—"}</td></tr>
           <tr><td>Repeat callers recognised</td><td class="n">${jud.repeat_callers ?? "—"}</td></tr>
           <tr><td>Call minutes</td><td class="n">${cost.call_minutes ?? "—"}</td></tr>
@@ -228,20 +444,26 @@ function render(ans, jud, conv, cost) {
     </div>
 
     <p class="foot">
-      <strong>No trend lines yet.</strong> One month of data cannot show a trend, and
-      drawing one from a single point would be a lie. Month-over-month charts appear here
-      once there is a second month.<br>
-      <strong>The decline queue is not on this page.</strong> It carries names and areas,
-      so it sits behind a staff login rather than a shared URL. This dashboard can read
-      aggregates only — it has no access to the call records themselves.
+      <b>No trend lines yet.</b> One month of data cannot show a trend, and drawing one from a
+      single point would be a lie. Month-over-month charts appear here once there is a second month.<br>
+      <b>The decline queue is not on this page.</b> It carries names, numbers and areas, so it sits
+      behind a staff login rather than a shared URL. This page can read four aggregate views and
+      nothing else — the call records themselves return 401 to it.
     </p>`;
+
+  const t = new Date().toLocaleTimeString("en-IN", {hour: "2-digit", minute: "2-digit"});
+  document.getElementById("status").innerHTML =
+    `<span class="led"></span><span>live · supabase · ${t}</span>`;
 }
 
 Promise.all([view("v_answering"), view("v_judgement"), view("v_conversion"), view("v_cost")])
   .then(([a, j, c, k]) => render(a, j, c, k))
   .catch(e => {
+    const s = document.getElementById("status");
+    s.className = "status bad";
+    s.innerHTML = `<span class="led"></span><span>no connection</span>`;
     document.getElementById("app").innerHTML =
-      `<div class="err"><strong>Could not load the call log.</strong><br>${esc(e.message)}
+      `<div class="err"><b>Could not load the call log.</b><br>${esc(e.message)}
        <br><br>If the Supabase project has paused through inactivity, restore it and reload.</div>`;
   });
 </script>
