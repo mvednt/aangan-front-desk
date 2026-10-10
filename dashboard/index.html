@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aangan Front Desk</title>
+<style>
+  :root {
+    color-scheme: light;
+    --surface-0: #f4f4f1;
+    --surface-1: #fcfcfb;
+    --border:    #e2e1dc;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #86857e;
+    --series-1: #2a78d6;
+    --series-2: #eb6834;
+    --series-3: #1baf7a;
+    --series-4: #eda100;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --surface-0: #121211;
+      --surface-1: #1a1a19;
+      --border:    #35342f;
+      --text-primary:   #f0efec;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #8e8d84;
+      --series-1: #3987e5;
+      --series-2: #d95926;
+      --series-3: #199e70;
+      --series-4: #c98500;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface-0: #121211;
+    --surface-1: #1a1a19;
+    --border:    #35342f;
+    --text-primary:   #f0efec;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #8e8d84;
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--surface-0);
+    color: var(--text-primary);
+    font: 15px/1.5 ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 40px 16px 72px; }
+
+  header { margin-bottom: 32px; }
+  h1 { font-size: 22px; font-weight: 650; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .sub { color: var(--text-secondary); font-size: 13px; margin: 0; }
+
+  .hero {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+  .hero-label { font-size: 13px; color: var(--text-secondary); margin: 0 0 10px; }
+  .hero-num {
+    font-size: 52px; font-weight: 650; letter-spacing: -0.02em;
+    line-height: 1; margin: 0 0 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  .hero-note { font-size: 13px; color: var(--text-secondary); margin: 0; max-width: 62ch; }
+
+  .tiles {
+    display: grid; gap: 12px; margin-bottom: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  }
+  .tile {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .tile-label { font-size: 12px; color: var(--text-secondary); margin: 0 0 6px; }
+  .tile-num {
+    font-size: 26px; font-weight: 600; letter-spacing: -0.01em;
+    margin: 0; font-variant-numeric: tabular-nums;
+  }
+  .tile-foot { font-size: 11.5px; color: var(--text-muted); margin: 4px 0 0; }
+
+  .panel {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px 28px;
+    margin-bottom: 20px;
+  }
+  .panel h2 { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
+  .panel .lede { font-size: 13px; color: var(--text-secondary); margin: 0 0 20px; }
+
+  .bar { display: flex; width: 100%; height: 34px; gap: 2px; margin-bottom: 14px; }
+  .seg { border-radius: 3px; min-width: 3px; }
+  .seg:first-child { border-radius: 6px 3px 3px 6px; }
+  .seg:last-child  { border-radius: 3px 6px 6px 3px; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+  .lg { display: flex; align-items: center; gap: 7px; font-size: 13px; }
+  .sw { width: 11px; height: 11px; border-radius: 3px; flex: none; }
+  .lg b { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .lg span { color: var(--text-secondary); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  caption { text-align: left; font-size: 12px; color: var(--text-muted); padding-bottom: 8px; }
+  th, td { text-align: left; padding: 7px 10px 7px 0; border-bottom: 1px solid var(--border); }
+  th { font-weight: 600; color: var(--text-secondary); font-size: 12px; }
+  td.n { text-align: right; font-variant-numeric: tabular-nums; padding-right: 0; }
+
+  .foot { font-size: 12.5px; color: var(--text-muted); margin-top: 28px; line-height: 1.6; }
+  .foot strong { color: var(--text-secondary); font-weight: 600; }
+  .err {
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-left: 3px solid var(--series-2);
+    border-radius: 8px; padding: 16px 18px; font-size: 13px;
+  }
+  @media (max-width: 560px) {
+    .hero-num { font-size: 40px; }
+    .wrap { padding-top: 28px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Aangan Front Desk</h1>
+    <p class="sub">What the phone agent costs to run, and what it is generating.</p>
+  </header>
+  <div id="app"><p class="sub">Loading…</p></div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://lyqysxyvxziwfohkimgd.supabase.co";
+const SUPABASE_KEY = "sb_publishable_lYuDq4X-2ZlIqEqUOkr_2g_QOhonNAE";
+
+const inr = n => "₹" + Number(n).toLocaleString("en-IN", {maximumFractionDigits: 0});
+const inr2 = n => "₹" + Number(n).toLocaleString("en-IN", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const pct = n => n == null ? "—" : Number(n).toFixed(1) + "%";
+const esc = s => String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+
+async function view(name) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${name}?select=*&order=month.desc&limit=1`, {
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+  });
+  if (!r.ok) throw new Error(`${name}: ${r.status} ${r.statusText}`);
+  const rows = await r.json();
+  return rows[0] || {};
+}
+
+function render(ans, jud, conv, cost) {
+  const monthLabel = ans.month
+    ? new Date(ans.month).toLocaleDateString("en-IN", {month: "long", year: "numeric", timeZone: "UTC"})
+    : "—";
+
+  const AVG_PROJECT = 1100000;
+  const cpl = cost.cost_per_qualified_lead;
+  const ratio = cpl ? Math.round(AVG_PROJECT / cpl) : null;
+
+  const mix = [
+    {k: "Qualified", v: jud.qualified  || 0, c: "var(--series-1)"},
+    {k: "Declined",  v: jud.declined   || 0, c: "var(--series-2)"},
+    {k: "Escalated", v: jud.escalated  || 0, c: "var(--series-3)"},
+    {k: "Dropped",   v: ans.dropped    || 0, c: "var(--series-4)"}
+  ];
+  const mixTotal = mix.reduce((a, b) => a + b.v, 0) || 1;
+
+  document.getElementById("app").innerHTML = `
+    <div class="hero">
+      <p class="hero-label">Cost per qualified lead · ${esc(monthLabel)}</p>
+      <p class="hero-num">${cpl != null ? inr2(cpl) : "—"}</p>
+      <p class="hero-note">${ratio
+        ? `An average project is worth <strong>${inr(AVG_PROJECT)}</strong> — about <strong>${ratio.toLocaleString("en-IN")}×</strong> what it costs to find one. The build pays for itself on a single recovered project.`
+        : "No qualified leads yet this month."}</p>
+    </div>
+
+    <div class="tiles">
+      <div class="tile"><p class="tile-label">Calls handled</p><p class="tile-num">${ans.calls_handled ?? "—"}</p><p class="tile-foot">${pct(ans.pct_out_of_hours)} outside 10–7</p></div>
+      <div class="tile"><p class="tile-label">Qualification rate</p><p class="tile-num">${pct(jud.qualification_rate_pct)}</p><p class="tile-foot">of genuine enquiries</p></div>
+      <div class="tile"><p class="tile-label">Consultations booked</p><p class="tile-num">${conv.booked ?? "—"}</p><p class="tile-foot">${pct(conv.booking_rate_pct)} of qualified</p></div>
+      <div class="tile"><p class="tile-label">Showed up</p><p class="tile-num">${conv.attended ?? "—"}</p><p class="tile-foot">${pct(conv.show_up_rate_pct)} of booked</p></div>
+      <div class="tile"><p class="tile-label">Pipeline value</p><p class="tile-num">${conv.pipeline_value != null ? inr(conv.pipeline_value) : "—"}</p><p class="tile-foot">attended × ₹11L avg</p></div>
+      <div class="tile"><p class="tile-label">Total run cost</p><p class="tile-num">${cost.total_run_cost != null ? inr2(cost.total_run_cost) : "—"}</p><p class="tile-foot">${cost.call_minutes ?? 0} min × ₹5.98</p></div>
+    </div>
+
+    <div class="panel">
+      <h2>What happened to every call</h2>
+      <p class="lede">A decline is a correct outcome, not a failure — these are categories, not grades.</p>
+      <div class="bar" role="img" aria-label="${mix.map(m => `${m.k} ${m.v}`).join(", ")}">
+        ${mix.filter(m => m.v > 0).map(m =>
+          `<div class="seg" style="background:${m.c};flex:${m.v}"></div>`).join("")}
+      </div>
+      <div class="legend">
+        ${mix.map(m => `<span class="lg"><span class="sw" style="background:${m.c}"></span><b>${m.v}</b> <span>${m.k}</span></span>`).join("")}
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>The numbers behind the tiles</h2>
+      <p class="lede">Every figure above reads from the call log. Nothing is typed in by hand.</p>
+      <table>
+        <caption>${esc(monthLabel)} · ${mixTotal} calls</caption>
+        <thead><tr><th>Measure</th><th class="n">Value</th></tr></thead>
+        <tbody>
+          <tr><td>Calls handled</td><td class="n">${ans.calls_handled ?? "—"}</td></tr>
+          <tr><td>Outside studio hours</td><td class="n">${ans.out_of_hours ?? "—"} (${pct(ans.pct_out_of_hours)})</td></tr>
+          <tr><td>Qualified</td><td class="n">${jud.qualified ?? "—"}</td></tr>
+          <tr><td>Declined</td><td class="n">${jud.declined ?? "—"}</td></tr>
+          <tr><td>Escalated to a human</td><td class="n">${jud.escalated ?? "—"}</td></tr>
+          <tr><td>Repeat callers recognised</td><td class="n">${jud.repeat_callers ?? "—"}</td></tr>
+          <tr><td>Call minutes</td><td class="n">${cost.call_minutes ?? "—"}</td></tr>
+          <tr><td>Voice cost</td><td class="n">${cost.voice_cost != null ? inr2(cost.voice_cost) : "—"}</td></tr>
+          <tr><td>Cost per qualified lead</td><td class="n">${cpl != null ? inr2(cpl) : "—"}</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="foot">
+      <strong>No trend lines yet.</strong> One month of data cannot show a trend, and
+      drawing one from a single point would be a lie. Month-over-month charts appear here
+      once there is a second month.<br>
+      <strong>The decline queue is not on this page.</strong> It carries names and areas,
+      so it sits behind a staff login rather than a shared URL. This dashboard can read
+      aggregates only — it has no access to the call records themselves.
+    </p>`;
+}
+
+Promise.all([view("v_answering"), view("v_judgement"), view("v_conversion"), view("v_cost")])
+  .then(([a, j, c, k]) => render(a, j, c, k))
+  .catch(e => {
+    document.getElementById("app").innerHTML =
+      `<div class="err"><strong>Could not load the call log.</strong><br>${esc(e.message)}
+       <br><br>If the Supabase project has paused through inactivity, restore it and reload.</div>`;
+  });
+</script>
+</body>
+</html>
